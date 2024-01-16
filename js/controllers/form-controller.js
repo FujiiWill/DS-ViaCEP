@@ -1,5 +1,6 @@
 import Address from "../models/address.js";
 import * as addressService from "../services/address-service.js";
+import * as listController from "./list-controller.js";
 
 function State() {
   this.address = new Address();
@@ -37,8 +38,8 @@ export function init() {
   state.inputCep.addEventListener("change", handleInputCepChange);
 }
 
-function handleInputNumberKeyup(event){
-    state.address.number = event.target.value;
+function handleInputNumberKeyup(event) {
+  state.address.number = event.target.value;
 }
 
 async function handleInputCepChange(event) {
@@ -60,9 +61,21 @@ async function handleInputCepChange(event) {
   }
 }
 
-async function handleBtnSaveClick(event) {
+function handleBtnSaveClick(event) {
   event.preventDefault();
-  console.log(state.address);
+
+  const errors = addressService.getErrors(state.address);
+
+  const keys = Object.keys(errors);
+
+  if (keys.length > 0) {
+    for (let i = 0; i < keys.length; i++) {
+      setFormError(keys[i], errors[keys[i]]);
+    }
+  } else {
+    listController.addCard(state.address);
+    clearForm();
+  }
 }
 
 function handleInputNumberChange(event) {
@@ -75,6 +88,10 @@ function handleInputNumberChange(event) {
 
 function handleBtnClearClick(event) {
   event.preventDefault();
+  clearForm();
+}
+
+function clearForm() {
   state.inputCep.value = "";
   state.inputStreet.value = "";
   state.inputNumber.value = "";
@@ -82,6 +99,8 @@ function handleBtnClearClick(event) {
 
   setFormError("cep", "");
   setFormError("number", "");
+
+  state.address = new Address();
 
   state.inputCep.focus();
 }
